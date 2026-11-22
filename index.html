@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Order assistant</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 480px;
+      margin: 50px auto;
+      padding: 20px;
+    }
+
+    textarea,
+    button {
+      box-sizing: border-box;
+      width: 100%;
+      padding: 12px;
+      margin-top: 12px;
+      font: inherit;
+    }
+
+    button {
+      background: #6d28d9;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    #reply {
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+
+<body>
+<h1>Customer Order Agent</h1>
+  <section aria-labelledby="chatHeading">
+    <h2 id="chatHeading">Ask our AI assistant</h2>
+    <p>Ask about products, prices or a saved order.</p>
+    <div id="chatLog" role="log" aria-live="polite" style="white-space:pre-wrap;overflow-wrap:anywhere"></div>
+    <form id="chatForm">
+      <label for="chatMessage">Your question</label>
+      <textarea id="chatMessage" rows="2" required maxlength="2000"></textarea>
+      <button id="chatSend" type="submit">Send question</button>
+    </form>
+    <button id="newChat" type="button">Start new chat</button>
+    <p id="chatStatus" role="status"></p>
+  </section>
+  <script>
+    const agentWebhookUrl = "YOUR_AGENT_WEBHOOK_URL";
+    const chatForm = document.getElementById("chatForm");
+    const chatMessage = document.getElementById("chatMessage");
+    const chatSend = document.getElementById("chatSend");
+    const newChat = document.getElementById("newChat");
+    const chatLog = document.getElementById("chatLog");
+    const chatStatus = document.getElementById("chatStatus");
+    let conversationId = crypto.randomUUID();
+    let chatting = false;
+
+    function showChatMessage(speaker, message) {
+      const paragraph = document.createElement("p");
+      paragraph.textContent = speaker + ": " + message;
+      chatLog.appendChild(paragraph);
+    }
+
+    newChat.addEventListener("click", () => {
+      if (chatting) return;
+      conversationId = crypto.randomUUID();
+      chatLog.replaceChildren();
+      chatMessage.value = "";
+      chatStatus.textContent = "New chat started.";
+      chatMessage.focus();
+    });
+
+    chatForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const message = chatMessage.value.trim();
+      if (chatting || !message) return;
+      chatting = true;
+      chatSend.disabled = true;
+      newChat.disabled = true;
+      chatMessage.readOnly = true;
+      showChatMessage("You", message);
+      chatStatus.textContent = "Getting your answer…";
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 60000);
+      try {
+        const response = await fetch(agentWebhookUrl, {
+          method: "POST",
+          body: new URLSearchParams({
+            message,
+            conversation_id: conversationId
+          }),
+          signal: controller.signal
+        });
+        const answer = (await response.text()).trim();
+        if (!response.ok || !answer || answer.toLowerCase() === "accepted") {
+          throw new Error("No answer received");
+        }
+        showChatMessage("Assistant", answer);
+        chatMessage.value = "";
+        chatStatus.textContent = "";
+      } catch {
+        chatStatus.textContent = "We couldn’t get an answer. Please try again shortly.";
+      } finally {
+        clearTimeout(timer);
+        chatting = false;
+        chatSend.disabled = false;
+        newChat.disabled = false;
+        chatMessage.readOnly = false;
+        chatMessage.focus();
+      }
+    });
+  </script></body>
+</html>

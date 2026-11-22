@@ -1,0 +1,31 @@
+CUSTOMER ORDER SHOP — BUSINESS INFORMATION
+
+Products and unit prices
+- Notebook costs NGN 2,000.
+- Pen costs NGN 500.
+- School bag costs NGN 10,000.
+
+Ordering
+- Customers can include multiple products in one order.
+- Each product must have a positive whole-number quantity.
+- Customers review their order before confirming it.
+- A saved order has an order reference.
+
+Checking an existing order
+- Customers should provide the order reference from their confirmation.
+- Current order details must be retrieved using the order lookup tool.
+
+Information awaiting confirmation from the business owner
+- Delivery availability, charges and delivery times.
+- Opening hours.
+- Returns and refunds.
+- Current stock availability.
+
+CUSTOMER SUPPORT — DEMO BUSINESS
+Support email: support@example.com
+This is a placeholder for demonstration, not a working shop contact.
+
+Cancellation and refund requests require review by a human.
+Customers should include their order reference and explain their request.
+Submitting a request does not guarantee approval.
+The order form only accepts new orders.
